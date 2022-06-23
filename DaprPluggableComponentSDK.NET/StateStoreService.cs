@@ -21,8 +21,13 @@ public class StateStoreService : StateStore.StateStoreBase
 
         public override Task<Empty> Init(MetadataRequest request, ServerCallContext context)
         {
+            var props = new Dictionary<string, string>();
+            foreach (var k in request.Properties.Keys)
+            {
+                props[k] = request.Properties[k];
+            }
             _logger.LogInformation("Initializing state store backend");
-            _backend.Init(request.Properties);
+            _backend.Init(props);
             return Task.FromResult(new Empty());
         }
 
@@ -36,7 +41,7 @@ public class StateStoreService : StateStore.StateStoreBase
         public override Task<Empty> Delete(DeleteRequest request, ServerCallContext context)
         {
             _logger.LogDebug("Deleting data in store for key {}", request.Key);
-            _backend.Delete(request.Key, request.Options, request.Etag);
+            _backend.Delete(request.Key, int.Parse(request.Etag.Value));
             return base.Delete(request, context);
         }
 
@@ -45,11 +50,18 @@ public class StateStoreService : StateStore.StateStoreBase
             _logger.LogDebug("Getting data in store for key {}", request.Key);
 
             var obj = _backend.Get(request.Key); //, request.Consistency, request.Metadata);
-            var resp = new GetResponse
+            var resp = new GetResponse();
+            if (obj.HasValue)
             {
-                Data = ByteString.CopyFrom(obj.data),
-                Etag = new Etag { Value = obj.etag.ToString() },
-            };
+                resp.Data = ByteString.CopyFrom(obj.Value.data);
+                resp.Etag = new Etag { Value = obj.Value.etag.ToString() };
+            }
+            else
+            {
+                resp.Data = ByteString.Empty;
+                resp.Etag = null;
+            }
+
             foreach (var k in request.Metadata.Keys)
             {
                 resp.Metadata[k] = request.Metadata[k];
@@ -60,9 +72,11 @@ public class StateStoreService : StateStore.StateStoreBase
 
         public override Task<Empty> Set(SetRequest request, ServerCallContext context)
         {
-            _logger.LogDebug("Setting data in store for key {}", request.Key);
+            _logger.LogInformation("Setting data in store for key {0}", request.Key);
+            
+            var obj = new StoreObject { data = request.Value.ToByteArray(), etag = -1 };
 
-            _backend.Set(request.Key, request.Value, request.Etag);
+            _backend.Set(request.Key, obj);
             return Task.FromResult(new Empty());
         }
 
@@ -77,7 +91,7 @@ public class StateStoreService : StateStore.StateStoreBase
 
             foreach (var item in request.Items)
             {
-                _backend.Delete(item.Key, item.Options, item.Etag);
+                _backend.Delete(item.Key, int.Parse(item.Etag.Value));
             }
 
             return Task.FromResult(new Empty());
@@ -90,14 +104,26 @@ public class StateStoreService : StateStore.StateStoreBase
             foreach (var item in request.Items)
             {
                 var obj = _backend.Get(item.Key);
-
-                response.Items.Add(new BulkStateItem
+                if (obj.HasValue)
                 {
-                    Data = ByteString.CopyFrom(obj.data),
-                    Etag = new Etag { Value = obj.etag.ToString() },
-                    Key = item.Key,
-                    Error = "none"
-                });
+                    response.Items.Add(new BulkStateItem
+                    {
+                        Data = ByteString.CopyFrom(obj.Value.data),
+                        Etag = new Etag { Value = obj.Value.etag.ToString() },
+                        Key = item.Key,
+                        Error = "none"
+                    });
+                }
+                else
+                {
+                    response.Items.Add(new BulkStateItem
+                    {
+                        Data = ByteString.Empty,
+                        Etag = new Etag(),
+                        Key = item.Key, 
+                        Error = "KeyDoesNotExist"
+                    });
+                }
             }
 
             return Task.FromResult(response);
@@ -109,8 +135,9 @@ public class StateStoreService : StateStore.StateStoreBase
 
             foreach (var item in request.Items)
             {
-                _backend.Set(item.Key, item.Value, item.Etag);
+                Set(item, context);
             }
-            return base.BulkSet(request, context);
+
+            return Task.FromResult(new Empty());
         }
 }

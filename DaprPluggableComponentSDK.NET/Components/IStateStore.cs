@@ -8,15 +8,15 @@ namespace DaprPluggableComponentSDK.NET.Components;
 
 public struct StoreObject
 {
-    internal Byte[] data { get; }
-    internal int etag { get;  }
+    internal Byte[] data { get; init; }
+    internal int etag { get; init; }
 }
 
 public interface IStateStore
 {
-    StoreObject Get(string requestKey);
-    void Init(MapField<string,string> requestProperties);
+    StoreObject? Get(string key);
+    void Init(Dictionary<string,string> properties);
     List<string> Features();
-    void Delete(string requestKey, StateOptions requestOptions, Etag requestEtag);
-    void Set(string requestKey, ByteString requestValue, Etag requestEtag);
+    void Delete(string key, int etag);
+    void Set(string requestKey, StoreObject storeObject);
 }
