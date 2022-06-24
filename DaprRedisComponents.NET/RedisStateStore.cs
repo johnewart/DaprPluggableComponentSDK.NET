@@ -2,13 +2,15 @@ namespace DaprRedisComponents.NET;
 
 using DaprPluggableComponentSDK.NET.Components;
 using StackExchange.Redis;
+using Microsoft.Extensions.Logging; 
 
 public class RedisStateStore : IStateStore
 {
-    private ConnectionMultiplexer redis = ConnectionMultiplexer.Connect("localhost:6379");
+    private ConnectionMultiplexer _redis;
 
-    public RedisStateStore()
+    public RedisStateStore(ConnectionMultiplexer redis)
     {
+        _redis = redis; 
     }
     
     public void Init(Dictionary<string, string> props)
@@ -17,8 +19,8 @@ public class RedisStateStore : IStateStore
 
     public Task<StoreObject?> Get(string requestKey)
     {
-        IDatabase redisDb = redis.GetDatabase();
-        return redisDb.StringGetAsync(requestKey).ContinueWith( it => {
+        IDatabase db = _redis.GetDatabase();
+        return db.StringGetAsync(requestKey).ContinueWith( it => {
             if (it.Result.IsNull) { 
                 return new Nullable<StoreObject>();
             } else {
@@ -37,13 +39,13 @@ public class RedisStateStore : IStateStore
 
     public Task Delete(string requestKey, int etag)
     {
-        IDatabase redisDb = redis.GetDatabase();
-        return redisDb.KeyDeleteAsync(requestKey);
+        IDatabase db = _redis.GetDatabase();
+        return db.KeyDeleteAsync(requestKey);
     }
 
     public Task Set(string requestKey, StoreObject storeObject)
     {
-        IDatabase redisDb = redis.GetDatabase();
-        return redisDb.StringSetAsync(requestKey, storeObject.data);
+        IDatabase db = _redis.GetDatabase();
+        return db.StringSetAsync(requestKey, storeObject.data);
     }
 }

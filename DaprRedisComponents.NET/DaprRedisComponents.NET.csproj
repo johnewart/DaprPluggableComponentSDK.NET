@@ -13,7 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DaprPluggableComponentSDK.NET\DaprPluggableComponentSDK.NET.csproj" />
-    <ProjectReference Include="..\DaprInMemoryStateStore.NET\DaprInMemoryStateStore.NET.csproj" />
+    <ProjectReference Include="..\DaprInMemoryComponents.NET\DaprInMemoryComponents.NET.csproj" />
   </ItemGroup>
 
 </Project>

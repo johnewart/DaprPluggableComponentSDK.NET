@@ -2,7 +2,7 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DaprPluggableComponentSDK.NET", "DaprPluggableComponentSDK.NET\DaprPluggableComponentSDK.NET.csproj", "{2AF8EE19-43DB-494F-804C-E2573AC1EC7B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DaprInMemoryStateStore.NET", "DaprInMemoryStateStore.NET\DaprInMemoryStateStore.NET.csproj", "{FD5659EC-2FE3-42E3-8E4F-A26D84879B4E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DaprInMemoryComponents.NET", "DaprInMemoryComponents.NET\DaprInMemoryComponents.NET.csproj", "{FD5659EC-2FE3-42E3-8E4F-A26D84879B4E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DaprRedisComponents.NET", "DaprRedisComponents.NET\DaprRedisComponents.NET.csproj", "{FD5659EC-2FE3-42E3-8E4F-F26D84879B4E}"
 EndProject

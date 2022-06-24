@@ -1,6 +1,7 @@
 using DaprRedisComponents.NET.Services;
 using DaprPluggableComponentSDK.NET;
 using DaprInMemoryStateStore.NET.Services;
+using StackExchange.Redis;
 
 var socketPath = Environment.GetEnvironmentVariable(Constants.DaprSocketPathEnvironmentVariable);
 
@@ -25,12 +26,12 @@ builder.WebHost.ConfigureKestrel(options =>
 
 // Add services to the container.
 builder.Services.AddGrpc();
+builder.Services.AddSingleton<ConnectionMultiplexer>(ConnectionMultiplexer.Connect("localhost"));
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 app.MapGrpcService<RedisStateStoreService>();
 app.MapGrpcService<InMemoryPubSubService>();
-app.MapGet("/", () => "Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
 
 app.Run();
