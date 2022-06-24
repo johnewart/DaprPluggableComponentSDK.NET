@@ -1,6 +1,3 @@
-using Dapr.Client.Autogen.Grpc.v1;
-using Google.Protobuf.Collections;
-
 namespace DaprInMemoryStateStore.NET;
 
 using DaprPluggableComponentSDK.NET.Components;
