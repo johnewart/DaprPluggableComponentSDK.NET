@@ -11,15 +11,15 @@ public class InMemoryStateStore : IStateStore
         dataStore = new Dictionary<string, StoreObject>();
     }
     
-    public StoreObject? Get(string requestKey)
+    public Task<StoreObject?> Get(string requestKey)
     {
         if (dataStore.ContainsKey(requestKey))
         {
-            return dataStore[requestKey];
+            return Task.FromResult<StoreObject?>(dataStore[requestKey]);
         }
         else
         {
-            return null; 
+            return Task.FromResult<StoreObject?>(null);
         }
     }
 
@@ -32,13 +32,13 @@ public class InMemoryStateStore : IStateStore
         return new List<string>();
     }
 
-    public void Delete(string requestKey, int etag)
+    public Task Delete(string requestKey, int etag)
     {
-        dataStore.Remove(requestKey);
+        return Task.FromResult(dataStore.Remove(requestKey));
     }
 
-    public void Set(string requestKey, StoreObject storeObject)
+    public Task Set(string requestKey, StoreObject storeObject)
     {
-        dataStore[requestKey] = storeObject;
+        return Task.FromResult(dataStore[requestKey] = storeObject);
     }
 }

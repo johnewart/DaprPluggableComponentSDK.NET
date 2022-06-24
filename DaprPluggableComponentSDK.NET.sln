@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DaprPluggableComponentSDK.N
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DaprInMemoryStateStore.NET", "DaprInMemoryStateStore.NET\DaprInMemoryStateStore.NET.csproj", "{FD5659EC-2FE3-42E3-8E4F-A26D84879B4E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DaprRedisComponents.NET", "DaprRedisComponents.NET\DaprRedisComponents.NET.csproj", "{FD5659EC-2FE3-42E3-8E4F-F26D84879B4E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

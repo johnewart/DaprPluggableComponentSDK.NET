@@ -49,18 +49,21 @@ public class StateStoreService : StateStore.StateStoreBase
         {
             _logger.LogDebug("Getting data in store for key {}", request.Key);
 
-            var obj = _backend.Get(request.Key); //, request.Consistency, request.Metadata);
             var resp = new GetResponse();
-            if (obj.HasValue)
-            {
-                resp.Data = ByteString.CopyFrom(obj.Value.data);
-                resp.Etag = new Etag { Value = obj.Value.etag.ToString() };
-            }
-            else
-            {
-                resp.Data = ByteString.Empty;
-                resp.Etag = null;
-            }
+           
+            _backend.Get(request.Key).ContinueWith( it => {
+                if (it.Result.HasValue)
+                {
+                    var obj = it.Result;
+                    resp.Data = ByteString.CopyFrom(obj.Value.data);
+                    resp.Etag = new Etag { Value = obj.Value.etag.ToString() };
+                }
+                else
+                {
+                    resp.Data = ByteString.Empty;
+                    resp.Etag = null;
+                }
+            });
 
             foreach (var k in request.Metadata.Keys)
             {
@@ -100,30 +103,33 @@ public class StateStoreService : StateStore.StateStoreBase
         public override Task<BulkGetResponse> BulkGet(BulkGetRequest request, ServerCallContext context)
         {
             _logger.LogDebug("Bulk fetching data in store for {} keys", request.Items.Count);
+
             var response = new BulkGetResponse();
             foreach (var item in request.Items)
             {
-                var obj = _backend.Get(item.Key);
-                if (obj.HasValue)
-                {
-                    response.Items.Add(new BulkStateItem
+                _backend.Get(item.Key).ContinueWith( it => {
+                    if (it.Result.HasValue)
                     {
-                        Data = ByteString.CopyFrom(obj.Value.data),
-                        Etag = new Etag { Value = obj.Value.etag.ToString() },
-                        Key = item.Key,
-                        Error = "none"
-                    });
-                }
-                else
-                {
-                    response.Items.Add(new BulkStateItem
+                        var obj = it.Result;
+                        response.Items.Add(new BulkStateItem
+                        {
+                            Data = ByteString.CopyFrom(obj.Value.data),
+                            Etag = new Etag { Value = obj.Value.etag.ToString() },
+                            Key = item.Key,
+                            Error = "none"
+                        });
+                    }
+                    else
                     {
-                        Data = ByteString.Empty,
-                        Etag = new Etag(),
-                        Key = item.Key, 
-                        Error = "KeyDoesNotExist"
-                    });
-                }
+                        response.Items.Add(new BulkStateItem
+                        {
+                            Data = ByteString.Empty,
+                            Etag = new Etag(),
+                            Key = item.Key, 
+                            Error = "KeyDoesNotExist"
+                        });
+                    }
+                });
             }
 
             return Task.FromResult(response);
