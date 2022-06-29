@@ -24,7 +24,7 @@ option go_package = "github.com/dapr/dapr/pkg/proto/components/v1;components";
 service InputBinding {
   rpc Init(MetadataRequest) returns (google.protobuf.Empty) {}
 
-  rpc Read(google.protobuf.Empty) returns (ReadResponse) {}
+  rpc Read(google.protobuf.Empty) returns (stream ReadResponse) {}
 
   rpc Ping(google.protobuf.Empty) returns (google.protobuf.Empty) {}
 }
