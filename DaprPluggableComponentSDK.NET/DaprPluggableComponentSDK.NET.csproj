@@ -27,5 +27,6 @@
         <Protobuf Include="Protos\dapr\proto\components\v1\state.proto" ProtoRoot="Protos" GrpcServices="Client,Server" />
         <Protobuf Include="Protos\dapr\proto\components\v1\pubsub.proto" ProtoRoot="Protos" GrpcServices="Client,Server" />
         <Protobuf Include="Protos\dapr\proto\components\v1\binding.proto" ProtoRoot="Protos" GrpcServices="Client,Server" />
+        <Protobuf Include="Protos\dapr\proto\components\v1\middleware.proto" ProtoRoot="Protos" GrpcServices="Client,Server" />
     </ItemGroup>
 </Project>

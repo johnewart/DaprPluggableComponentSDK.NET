@@ -75,7 +75,7 @@ public class StateStoreService : StateStore.StateStoreBase
 
         public override Task<Empty> Set(SetRequest request, ServerCallContext context)
         {
-            _logger.LogInformation("Setting data in store for key {0}", request.Key);
+            _logger.LogDebug("Setting data in store for key {0}", request.Key);
             
             var obj = new StoreObject { data = request.Value.ToByteArray(), etag = -1 };
 
