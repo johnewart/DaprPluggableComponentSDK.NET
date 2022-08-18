@@ -7,7 +7,7 @@
       "applicationUrl": "http://localhost:5258;https://localhost:7052",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "DAPR_COMPONENT_SOCKET_PATH": "dotnet-inmemory-components.sock"
+        "DAPR_COMPONENT_SOCKET_PATH": "/tmp/dotnet.sock"
       }
     }
   }

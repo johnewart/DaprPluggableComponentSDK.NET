@@ -11,14 +11,15 @@ namespace DaprInMemoryComponents
     {
         static void Main()
         {
-            var service = new PluggableComponentService();
-            service.WithStateStore<InMemoryStateStoreService>();
-            service.WithHttpMiddleware<InMemoryHttpMiddlewareService>();
-            service.WithInputBinding<InMemoryInputBindingService>();
-            service.WithOutputBinding<InMemoryOutputBindingService>();
-            service.WithPubSub<InMemoryPubSubService>();
-
-            service.Run();
+            var builder = PluggableComponentServiceBuilder.CreateBuilder();
+            var singletonInMemoryStateStore = new InMemoryStateStore();
+            builder
+                .UseStateStore(() => singletonInMemoryStateStore)
+                .UseHttpMiddleware(() => new InMemoryHttpMiddleware())
+                .UseInputBinding(() => new InMemoryBinding())
+                .UseOutputputBinding(() => new InMemoryBinding())
+                .UsePubSub(() => new InMemoryPubSubComponent())
+                .Run();
         }
     }
 

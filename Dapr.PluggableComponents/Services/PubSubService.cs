@@ -10,10 +10,10 @@ namespace Dapr.PluggableComponents.Services;
 public class PubSubService : PubSub.PubSubBase   {
 
     private readonly ILogger<PubSubService> _logger; 
-    private readonly IPubSubComponent _backend; 
+    private readonly IPubSubComponent _backend;
 
     public PubSubService(ILogger<PubSubService> logger, IPubSubComponent backend) {
-        this._logger = logger; 
+        this._logger = logger;
         this._backend = backend;
     }
 
