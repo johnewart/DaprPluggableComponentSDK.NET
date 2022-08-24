@@ -38,20 +38,20 @@ public class StateStoreService : StateStore.StateStoreBase
         return Task.FromResult(resp);
     }
 
-    public override Task<Empty> Delete(DeleteRequest request, ServerCallContext context)
+    public override async Task<Empty> Delete(DeleteRequest request, ServerCallContext context)
     {
         _logger.LogDebug("Deleting data in store for key {}", request.Key);
-        _backend.Delete(request.Key, int.Parse(request.Etag.Value));
-        return base.Delete(request, context);
+        await _backend.Delete(request.Key, int.Parse(request.Etag.Value));
+        return await base.Delete(request, context);
     }
 
-    public override Task<GetResponse> Get(GetRequest request, ServerCallContext context)
+    public override async Task<GetResponse> Get(GetRequest request, ServerCallContext context)
     {
         _logger.LogDebug("Getting data in store for key {}", request.Key);
 
         var resp = new GetResponse();
 
-        _backend.Get(request.Key).ContinueWith(it =>
+        await _backend.Get(request.Key).ContinueWith(it =>
         {
             if (it.Result.HasValue)
             {
@@ -71,17 +71,17 @@ public class StateStoreService : StateStore.StateStoreBase
             resp.Metadata[k] = request.Metadata[k];
         }
 
-        return Task.FromResult(resp);
+        return resp;
     }
 
-    public override Task<Empty> Set(SetRequest request, ServerCallContext context)
+    public override async Task<Empty> Set(SetRequest request, ServerCallContext context)
     {
         _logger.LogDebug("Setting data in store for key {0}", request.Key);
 
         var obj = new StoreObject { data = request.Value.ToByteArray(), etag = -1 };
 
-        _backend.Set(request.Key, obj);
-        return Task.FromResult(new Empty());
+        await _backend.Set(request.Key, obj);
+        return new Empty();
     }
 
     public override Task<Empty> Ping(Empty request, ServerCallContext context)
@@ -89,63 +89,53 @@ public class StateStoreService : StateStore.StateStoreBase
         return Task.FromResult(new Empty());
     }
 
-    public override Task<Empty> BulkDelete(BulkDeleteRequest request, ServerCallContext context)
+    public override async Task<Empty> BulkDelete(BulkDeleteRequest request, ServerCallContext context)
     {
         _logger.LogDebug("Bulk deleting data in store for {} keys", request.Items.Count);
 
-        foreach (var item in request.Items)
-        {
-            _backend.Delete(item.Key, int.Parse(item.Etag.Value));
-        }
-
-        return Task.FromResult(new Empty());
+        await Task.WhenAll(request.Items.Select(item => _backend.Delete(item.Key, int.Parse(item.Etag.Value))));
+        return new Empty();
     }
 
-    public override Task<BulkGetResponse> BulkGet(BulkGetRequest request, ServerCallContext context)
+    public override async Task<BulkGetResponse> BulkGet(BulkGetRequest request, ServerCallContext context)
     {
         _logger.LogDebug("Bulk fetching data in store for {} keys", request.Items.Count);
 
         var response = new BulkGetResponse();
-        foreach (var item in request.Items)
+        var responsesTasks = request.Items.Select(async item =>
         {
-            _backend.Get(item.Key).ContinueWith(it =>
+            var storeObj = await _backend.Get(item.Key);
+            return storeObj != null ? new BulkStateItem
             {
-                if (it.Result.HasValue)
-                {
-                    var obj = it.Result;
-                    response.Items.Add(new BulkStateItem
-                    {
-                        Data = ByteString.CopyFrom(obj.Value.data),
-                        Etag = new Etag { Value = obj.Value.etag.ToString() },
-                        Key = item.Key,
-                        Error = "none"
-                    });
-                }
-                else
-                {
-                    response.Items.Add(new BulkStateItem
-                    {
-                        Data = ByteString.Empty,
-                        Etag = new Etag(),
-                        Key = item.Key,
-                        Error = "KeyDoesNotExist"
-                    });
-                }
-            });
-        }
+                Data = ByteString.CopyFrom(storeObj.Value.data),
+                Etag = new Etag { Value = storeObj.Value.etag.ToString() },
+                Key = item.Key,
+                Error = "none"
+            } : new BulkStateItem
+            {
+                Data = ByteString.Empty,
+                Etag = new Etag(),
+                Key = item.Key,
+                Error = "KeyDoesNotExist"
+            };
+        });
 
-        return Task.FromResult(response);
+        var itemsResponse = await Task.WhenAll(responsesTasks);
+        response.Items.AddRange(itemsResponse);
+
+        return response;
     }
 
-    public override Task<Empty> BulkSet(BulkSetRequest request, ServerCallContext context)
+    public override async Task<Empty> BulkSet(BulkSetRequest request, ServerCallContext context)
     {
         _logger.LogDebug("Bulk storing data in store for {} keys", request.Items.Count);
 
-        foreach (var item in request.Items)
+        var setRequests = request.Items.Select(async item =>
         {
-            Set(item, context);
-        }
+            await Set(item, context);
+        });
+        await Task.WhenAll(setRequests);
 
-        return Task.FromResult(new Empty());
+        return new Empty();
     }
 }
